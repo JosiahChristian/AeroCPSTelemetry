@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODU CPS Aerospace Telemetry Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>ODU CYBER-PHYSICAL SYSTEMS TELEMETRY STREAM</h1>
+        <div id="connection-status" class="status-badge">CONNECTED (SIMULATED)</div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- Live Visual Drone Stream -->
+        <section class="card visualizer-card">
+            <h2>Live 2D Flight Kinematics</h2>
+            <canvas id="droneCanvas" width="400" height="400"></canvas>
+        </section>
+
+        <!-- Live Telemetry Readouts -->
+        <section class="card metrics-card">
+            <h2>System State Indicators</h2>
+            <div class="metric">
+                <span class="label">Altitude:</span>
+                <span id="alt-readout" class="value">0.00</span> <span class="unit">m</span>
+            </div>
+            <div class="metric">
+                <span class="label">Velocity:</span>
+                <span id="vel-readout" class="value">0.00</span> <span class="unit">m/s</span>
+            </div>
+            <div class="metric">
+                <span class="label">Target Altitude:</span>
+                <span class="value">50.00</span> <span class="unit">m</span>
+            </div>
+        </section>
+    </main>
+
+    <script src="src/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+:root {
+    --bg-color: #0b0f19;
+    --card-bg: #161f30;
+    --accent-color: #38bdf8;
+    --text-color: #f8fafc;
+    --success: #4ade80;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.status-badge {
+    background-color: var(--success);
+    color: #000;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid #233554;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+canvas {
+    background-color: #05070c;
+    border: 1px dashed var(--accent-color);
+    width: 100%;
+    display: block;
+}
+
+.metric {
+    margin: 20px 0;
+    font-size: 1.5rem;
+}
+
+.label { color: #94a3b8; }
+.value { color: var(--accent-color); font-weight: bold; font-size: 2rem;}
+.unit { color: #64748b; font-size: 1rem; }
