@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ODU CPS Aerospace Telemetry Dashboard</title>
+    <title>ODU CPS Multi-Domain Telemetry & Biophysics Dashboard</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #161f30;
-            --accent-color: #38bdf8;
+            --bg-color: #05070f;
+            --card-bg: #0f172a;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
             --text-color: #f8fafc;
-            --success: #4ade80;
+            --border-color: #1e293b;
         }
         body {
             background-color: var(--bg-color);
@@ -20,136 +22,228 @@
             padding: 20px;
         }
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
         }
-        .status-badge {
-            background-color: var(--success);
-            color: #000;
+        h1 { margin: 0; font-size: 1.8rem; letter-spacing: 1px; }
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .tab-btn {
+            background-color: #1e293b;
+            color: #94a3b8;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: inherit;
             font-weight: bold;
-            padding: 5px 10px;
             border-radius: 4px;
         }
-        .dashboard-grid {
+        .tab-btn.active {
+            background-color: var(--accent-blue);
+            color: #000;
+            border-color: var(--accent-blue);
+        }
+        .dashboard-view { display: none; }
+        .dashboard-view.active {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.2fr 0.8fr;
             gap: 20px;
         }
         .card {
             background-color: var(--card-bg);
-            border: 1px solid #233554;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
         }
         canvas {
-            background-color: #05070c;
-            border: 1px dashed var(--accent-color);
+            background-color: #020617;
+            border: 1px dashed #334155;
             width: 100%;
-            height: 400px;
+            height: 380px;
             display: block;
+            border-radius: 4px;
         }
-        .metric {
-            margin: 20px 0;
-            font-size: 1.5rem;
+        .metric-row {
+            margin: 25px 0;
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 15px;
         }
-        .label { color: #94a3b8; }
-        .value { color: var(--accent-color); font-weight: bold; font-size: 2rem;}
-        .unit { color: #64748b; font-size: 1rem; }
+        .metric-row.cardio { border-color: var(--accent-green); }
+        .metric-row.neuro { border-color: var(--accent-red); }
+        .label { color: #64748b; font-size: 0.9rem; text-transform: uppercase; }
+        .value { font-size: 2.2rem; font-weight: bold; display: block; margin-top: 5px; }
+        .unit { color: #475569; font-size: 1rem; }
     </style>
 </head>
 <body>
+
     <header>
-        <h1>ODU CYBER-PHYSICAL SYSTEMS TELEMETRY STREAM</h1>
-        <div id="connection-status" class="status-badge">CONNECTED (LIVE)</div>
+        <h1>ODU ADVANCED SYSTEM VISUALIZER MATRIX</h1>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchView('aerospace-view')">🛸 Aerospace CPS Stream</button>
+            <button class="tab-btn" onclick="switchView('biomedical-view')">🫀 Biophysics Clinical Stream</button>
+        </div>
     </header>
 
-    <main class="dashboard-grid">
-        <section class="card visualizer-card">
-            <h2>Live 2D Flight Kinematics</h2>
-            <canvas id="droneCanvas" width="400" height="400"></canvas>
+    <main>
+        <!-- VIEW 1: ADVANCED AEROSPACE CORE WITH ENVIRONMENTAL DISTURBANCES -->
+        <section id="aerospace-view" class="dashboard-view active">
+            <div class="card">
+                <h2>Flight Kinematics Canvas (Wind Vectors Active)</h2>
+                <canvas id="droneCanvas" width="500" height="400"></canvas>
+            </div>
+            <div class="card">
+                <h2>Telemetry Registry</h2>
+                <div class="metric-row">
+                    <span class="label">Altitude Target Conformance:</span>
+                    <span id="alt-readout" class="value" style="color: var(--accent-blue)">0.00</span><span class="unit">meters</span>
+                </div>
+                <div class="metric-row" style="border-color: #a855f7">
+                    <span class="label">Atmospheric Wind Shear Force:</span>
+                    <span id="wind-readout" class="value" style="color: #a855f7">0.00</span><span class="unit">Newtons (Crosswind)</span>
+                </div>
+            </div>
         </section>
 
-        <section class="card metrics-card">
-            <h2>System State Indicators</h2>
-            <div class="metric">
-                <span class="label">Altitude:</span>
-                <span id="alt-readout" class="value">0.00</span> <span class="unit">m</span>
+        <!-- VIEW 2: BRAND NEW BIOMEDICAL BIOPHYSICS PANEL -->
+        <section id="biomedical-view" class="dashboard-view">
+            <div class="card">
+                <h2>Transient Biophysical Signal Wave Oscilloscope</h2>
+                <canvas id="biomedCanvas" width="500" height="400"></canvas>
             </div>
-            <div class="metric">
-                <span class="label">Velocity:</span>
-                <span id="vel-readout" class="value">0.00</span> <span class="unit">m/s</span>
-            </div>
-            <div class="metric">
-                <span class="label">Target Altitude:</span>
-                <span class="value">50.00</span> <span class="unit">m</span>
+            <div class="card">
+                <h2>Clinical Vitals Array</h2>
+                <div class="metric-row cardio">
+                    <span class="label">Systolic Hemodynamic Velocity:</span>
+                    <span id="vessel-readout" class="value" style="color: var(--accent-green)">0.00</span><span class="unit">cm/s (Mid-Artery Flow)</span>
+                </div>
+                <div class="metric-row neuro">
+                    <span class="label">Axon Synaptic Action Potential:</span>
+                    <span id="nerve-readout" class="value" style="color: var(--accent-red)">-70.00</span><span class="unit">millivolts (mV Spike)</span>
+                </div>
             </div>
         </section>
     </main>
 
     <script>
+        // Switch between dashboard interface arrays seamlessly
+        function switchView(viewId) {
+            document.querySelectorAll('.dashboard-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
-            const canvas = document.getElementById('droneCanvas');
-            const ctx = canvas.getContext('2d');
-            const altReadout = document.getElementById('alt-readout');
-            const velReadout = document.getElementById('vel-readout');
+            // --- ENGINE 1: ADVANCED DRONE SIMULATOR WITH CROSSWIND DISTURBANCE ---
+            const droneCanvas = document.getElementById('droneCanvas');
+            const dCtx = droneCanvas.getContext('2d');
+            let alt = 0.0, vel = 0.0, targetAlt = 50.0;
+            let windForce = 0.0;
 
-            let altitude = 0.0;
-            let velocity = 0.0;
-            const targetAltitude = 50.0;
-            const timeStep = 0.05;
-
-            function runTelemetryLoop() {
-                let error = targetAltitude - altitude;
-                let thrust = error * 0.5;
+            function runAerospaceLoop() {
+                // Introduce variable dynamic wind gusts to show systemic adaptability
+                if (Math.random() > 0.95) windForce = (Math.random() - 0.5) * 8.0;
+                
+                let error = targetAlt - alt;
+                let thrust = error * 0.4;
                 let gravity = -9.81;
-                let acceleration = thrust + gravity;
+                // Wind shear directly impacts vector acceleration loops
+                let acceleration = thrust + gravity + (windForce * 0.1);
 
-                velocity += acceleration * timeStep;
-                altitude += velocity * timeStep;
+                vel += acceleration * 0.05;
+                alt += vel * 0.05;
+                if (alt < 0) { alt = 0; vel = 0; }
 
-                if (altitude < 0.0) {
-                    altitude = 0.0;
-                    velocity = 0.0;
-                }
+                document.getElementById('alt-readout').textContent = alt.toFixed(2);
+                document.getElementById('wind-readout').textContent = windForce.toFixed(2);
 
-                altReadout.textContent = altitude.toFixed(2);
-                velReadout.textContent = velocity.toFixed(2);
+                dCtx.clearRect(0, 0, droneCanvas.width, droneCanvas.height);
+                let droneY = droneCanvas.height - 50 - (alt * 5);
+                let droneX = (droneCanvas.width / 2) + (windForce * 3); // Drone sways under crosswind forces
 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                let droneY = canvas.height - 40 - (altitude * 5); 
+                // Draw Target Bound Line
+                dCtx.strokeStyle = '#3b82f6'; dCtx.lineWidth = 1; dCtx.beginPath();
+                dCtx.moveTo(0, droneCanvas.height - 50 - (targetAlt * 5)); dCtx.lineTo(droneCanvas.width, droneCanvas.height - 50 - (targetAlt * 5)); dCtx.stroke();
 
                 // Draw Ground
-                ctx.strokeStyle = '#64748b';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(0, canvas.height - 40);
-                ctx.lineTo(canvas.width, canvas.height - 40);
-                ctx.stroke();
+                dCtx.fillStyle = '#1e293b'; dCtx.fillRect(0, droneCanvas.height - 50, droneCanvas.width, 50);
 
-                // Draw Target Line
-                let targetY = canvas.height - 40 - (targetAltitude * 5);
-                ctx.strokeStyle = '#ef4444';
-                ctx.beginPath();
-                ctx.moveTo(0, targetY);
-                ctx.lineTo(canvas.width, targetY);
-                ctx.stroke();
-
-                // Draw Quadcopter
-                ctx.fillStyle = '#38bdf8';
-                ctx.fillRect(canvas.width / 2 - 20, droneY, 40, 10);
-                ctx.fillRect(canvas.width / 2 - 40, droneY - 5, 20, 5);
-                ctx.fillRect(canvas.width / 2 + 20, droneY - 5, 20, 5);
-
-                setTimeout(runTelemetryLoop, timeStep * 1000);
+                // Draw Drone Structure Chassis
+                dCtx.fillStyle = '#38bdf8'; dCtx.fillRect(droneX - 20, droneY, 40, 8);
+                dCtx.fillStyle = '#ef4444'; dCtx.fillRect(droneX - 35, droneY - 4, 15, 4); dCtx.fillRect(droneX + 20, droneY - 4, 15, 4);
+                
+                setTimeout(runAerospaceLoop, 50);
             }
 
-            runTelemetryLoop();
-        });
-    </script>
-</body>
-</html>
+            // --- ENGINE 2: LIVE BIOMEDICAL CONDUCTION SIMULATOR ---
+            const biomedCanvas = document.getElementById('biomedCanvas');
+            const bCtx = biomedCanvas.getContext('2d');
+            let waveOffset = 0;
+            let actionPotential = -70.0;
+            let heartRateTimer = 0;
+
+            function runBiomedicalLoop() {
+                waveOffset += 2;
+                heartRateTimer += 1;
+
+                // Model cardiovascular pulse rhythms every 60 cycles
+                let cardioVelocity = 25.0 + Math.sin(waveOffset * 0.05) * 5.0;
+                if (heartRateTimer % 60 < 5) cardioVelocity += 15.0; // Systolic spike pumping
+
+                // Model nervous system impulse spikes (Action Potential firing)
+                if (heartRateTimer % 80 === 0) {
+                    actionPotential = 40.0; // Trigger electrical depolarization burst
+                } else {
+                    actionPotential += (-70.0 - actionPotential) * 0.15; // Repolarization decay leak
+                }
+
+                document.getElementById('vessel-readout').textContent = cardioVelocity.toFixed(2);
+                document.getElementById('nerve-readout').textContent = actionPotential.toFixed(2);
+
+                bCtx.clearRect(0, 0, biomedCanvas.width, biomedCanvas.height);
+
+                // Render real-time scrolling clinical vascular waveforms (Green Line)
+                bCtx.strokeStyle = '#4ade80'; bCtx.lineWidth = 2; bCtx.beginPath();
+                for (let x = 0; x < biomedCanvas.width; x++) {
+                    let y = 150 + Math.sin((x + waveOffset) * 0.03) * 20;
+                    if ((x + waveOffset) % 60 < 5) y -= 30; // Render pumping heart spikes
+                    if (x === 0) bCtx.moveTo(x, y); else bCtx.lineTo(x, y);
+                }
+                bCtx.stroke();
+
+                // Render real-time scrolling neurological electrical waveforms (Red Line)
+                bCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();
+                for (let x = 0; x < biomedCanvas.width; x++) {
+                    let baseNeuroY = 300;
+                    // Draw localized synaptic signal waves scrolling backwards across screen
+let impulsePos = (x + waveOffset) % 160;
+if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);
+else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);
+
+if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);
+}
+bCtx.stroke();
+
+setTimeout(runBiomedicalLoop, 40);
+}
+
+// Launch both asynchronous visualization processes simultaneously
+runAerospaceLoop();
+runBiomedicalLoop();
+});
+
+---
+
+### Step 2: Push Your Advanced Upgrades Live to GitHub
+
+Now that your advanced multi-view engineering layout is written and saved locally, use your **PowerShell window** to send it live to your online portfolio tracking slot:
+
+```powershell
+git add index.html
+git commit -m "feat: upgrade interface to host multi-view advanced aerospace wind-vectors and biophysics clinical streams"
+git push origin main
