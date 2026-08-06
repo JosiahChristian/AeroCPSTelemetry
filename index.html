@@ -61,7 +61,7 @@
         }
         canvas {
             background-color: #020617;
-            border: 1px dashed #334155;
+            border: 1px solid #1e293b;
             width: 100%;
             height: 380px;
             display: block;
@@ -78,19 +78,32 @@
         .value { font-size: 2.2rem; font-weight: bold; display: block; margin-top: 5px; }
         .unit { color: #475569; font-size: 1rem; }
     </style>
+    <script>
+        // Declaring switchView globally at the very top prevents ReferenceErrors completely
+        function switchView(viewId, btnId) {
+            document.querySelectorAll('.dashboard-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const selectedView = document.getElementById(viewId);
+            const selectedBtn = document.getElementById(btnId);
+            
+            if (selectedView) selectedView.classList.add('active');
+            if (selectedBtn) selectedBtn.classList.add('active');
+        }
+    </script>
 </head>
 <body>
 
     <header>
         <h1>ODU ADVANCED SYSTEM VISUALIZER MATRIX</h1>
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchView('aerospace-view')">🛸 Aerospace CPS Stream</button>
-            <button class="tab-btn" onclick="switchView('biomedical-view')">🫀 Biophysics Clinical Stream</button>
+            <button id="btn-aerospace" class="tab-btn active" onclick="switchView('aerospace-view', 'btn-aerospace')">🛸 Aerospace CPS Stream</button>
+            <button id="btn-biomedical" class="tab-btn" onclick="switchView('biomedical-view', 'btn-biomedical')">🫀 Biophysics Clinical Stream</button>
         </div>
     </header>
 
     <main>
-        <!-- VIEW 1: ADVANCED AEROSPACE CORE WITH ENVIRONMENTAL DISTURBANCES -->
+        <!-- Aerospace Panel -->
         <section id="aerospace-view" class="dashboard-view active">
             <div class="card">
                 <h2>Flight Kinematics Canvas (Wind Vectors Active)</h2>
@@ -109,7 +122,7 @@
             </div>
         </section>
 
-        <!-- VIEW 2: BRAND NEW BIOMEDICAL BIOPHYSICS PANEL -->
+        <!-- Biomedical Panel -->
         <section id="biomedical-view" class="dashboard-view">
             <div class="card">
                 <h2>Transient Biophysical Signal Wave Oscilloscope</h2>
@@ -130,119 +143,86 @@
     </main>
 
     <script>
-        // Switch between dashboard interface arrays seamlessly
-        function switchView(viewId) {
-            document.querySelectorAll('.dashboard-view').forEach(view => view.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
-            // --- ENGINE 1: ADVANCED DRONE SIMULATOR WITH CROSSWIND DISTURBANCE ---
+            // --- ENGINE 1: AEROSPACE ---
             const droneCanvas = document.getElementById('droneCanvas');
             const dCtx = droneCanvas.getContext('2d');
-            let alt = 0.0, vel = 0.0, targetAlt = 50.0;
-            let windForce = 0.0;
+            let alt = 0.0, vel = 0.0, targetAlt = 50.0, windForce = 0.0;
 
             function runAerospaceLoop() {
-                // Introduce variable dynamic wind gusts to show systemic adaptability
                 if (Math.random() > 0.95) windForce = (Math.random() - 0.5) * 8.0;
-                
                 let error = targetAlt - alt;
                 let thrust = error * 0.4;
-                let gravity = -9.81;
-                // Wind shear directly impacts vector acceleration loops
-                let acceleration = thrust + gravity + (windForce * 0.1);
-
+                let acceleration = thrust - 9.81 + (windForce * 0.1);
                 vel += acceleration * 0.05;
                 alt += vel * 0.05;
                 if (alt < 0) { alt = 0; vel = 0; }
 
-                document.getElementById('alt-readout').textContent = alt.toFixed(2);
-                document.getElementById('wind-readout').textContent = windForce.toFixed(2);
+                const altElem = document.getElementById('alt-readout');
+                const windElem = document.getElementById('wind-readout');
+                if (altElem) altElem.textContent = alt.toFixed(2);
+                if (windElem) windElem.textContent = windForce.toFixed(2);
 
                 dCtx.clearRect(0, 0, droneCanvas.width, droneCanvas.height);
                 let droneY = droneCanvas.height - 50 - (alt * 5);
-                let droneX = (droneCanvas.width / 2) + (windForce * 3); // Drone sways under crosswind forces
+                let droneX = (droneCanvas.width / 2) + (windForce * 3);
 
-                // Draw Target Bound Line
                 dCtx.strokeStyle = '#3b82f6'; dCtx.lineWidth = 1; dCtx.beginPath();
                 dCtx.moveTo(0, droneCanvas.height - 50 - (targetAlt * 5)); dCtx.lineTo(droneCanvas.width, droneCanvas.height - 50 - (targetAlt * 5)); dCtx.stroke();
-
-                // Draw Ground
                 dCtx.fillStyle = '#1e293b'; dCtx.fillRect(0, droneCanvas.height - 50, droneCanvas.width, 50);
-
-                // Draw Drone Structure Chassis
                 dCtx.fillStyle = '#38bdf8'; dCtx.fillRect(droneX - 20, droneY, 40, 8);
-                dCtx.fillStyle = '#ef4444'; dCtx.fillRect(droneX - 35, droneY - 4, 15, 4); dCtx.fillRect(droneX + 20, droneY - 4, 15, 4);
                 
-                setTimeout(runAerospaceLoop, 50);
+                requestAnimationFrame(runAerospaceLoop);
             }
 
-            // --- ENGINE 2: LIVE BIOMEDICAL CONDUCTION SIMULATOR ---
+            // --- ENGINE 2: BIOMEDICAL ---
             const biomedCanvas = document.getElementById('biomedCanvas');
             const bCtx = biomedCanvas.getContext('2d');
-            let waveOffset = 0;
-            let actionPotential = -70.0;
-            let heartRateTimer = 0;
+            let waveOffset = 0, actionPotential = -70.0, heartRateTimer = 0;
 
             function runBiomedicalLoop() {
                 waveOffset += 2;
                 heartRateTimer += 1;
-
-                // Model cardiovascular pulse rhythms every 60 cycles
                 let cardioVelocity = 25.0 + Math.sin(waveOffset * 0.05) * 5.0;
-                if (heartRateTimer % 60 < 5) cardioVelocity += 15.0; // Systolic spike pumping
+                if (heartRateTimer % 60 < 5) cardioVelocity += 15.0;
 
-                // Model nervous system impulse spikes (Action Potential firing)
-                if (heartRateTimer % 80 === 0) {
-                    actionPotential = 40.0; // Trigger electrical depolarization burst
-                } else {
-                    actionPotential += (-70.0 - actionPotential) * 0.15; // Repolarization decay leak
-                }
+                if (heartRateTimer % 80 === 0) actionPotential = 40.0;
+                else actionPotential += (-70.0 - actionPotential) * 0.15;
 
-                document.getElementById('vessel-readout').textContent = cardioVelocity.toFixed(2);
-                document.getElementById('nerve-readout').textContent = actionPotential.toFixed(2);
+                const vesselElem = document.getElementById('vessel-readout');
+                const nerveElem = document.getElementById('nerve-readout');
+                if (vesselElem) vesselElem.textContent = cardioVelocity.toFixed(2);
+                if (nerveElem) nerveElem.textContent = actionPotential.toFixed(2);
 
                 bCtx.clearRect(0, 0, biomedCanvas.width, biomedCanvas.height);
 
-                // Render real-time scrolling clinical vascular waveforms (Green Line)
+                // Cardio Wave
                 bCtx.strokeStyle = '#4ade80'; bCtx.lineWidth = 2; bCtx.beginPath();
                 for (let x = 0; x < biomedCanvas.width; x++) {
-                    let y = 150 + Math.sin((x + waveOffset) * 0.03) * 20;
-                    if ((x + waveOffset) % 60 < 5) y -= 30; // Render pumping heart spikes
+                    let y = 200 + Math.sin((x + waveOffset) * 0.03) * 20;
+                    if ((x + waveOffset) % 60 < 5) y -= 30;
                     if (x === 0) bCtx.moveTo(x, y); else bCtx.lineTo(x, y);
                 }
                 bCtx.stroke();
 
-                // Render real-time scrolling neurological electrical waveforms (Red Line)
+                // Neuro Wave
                 bCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();
                 for (let x = 0; x < biomedCanvas.width; x++) {
-                    let baseNeuroY = 300;
-                    // Draw localized synaptic signal waves scrolling backwards across screen
-let impulsePos = (x + waveOffset) % 160;
-if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);
-else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);
+                    let baseNeuroY = 320;
+                    let impulsePos = (x + waveOffset) % 160;
+                    if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);
+                    else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);
+                    if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);
+                }
+                bCtx.stroke();
 
-if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);
-}
-bCtx.stroke();
+                requestAnimationFrame(runBiomedicalLoop);
+            }
 
-setTimeout(runBiomedicalLoop, 40);
-}
-
-// Launch both asynchronous visualization processes simultaneously
-runAerospaceLoop();
-runBiomedicalLoop();
-});
-
----
-
-### Step 2: Push Your Advanced Upgrades Live to GitHub
-
-Now that your advanced multi-view engineering layout is written and saved locally, use your **PowerShell window** to send it live to your online portfolio tracking slot:
-
-```powershell
-git add index.html
-git commit -m "feat: upgrade interface to host multi-view advanced aerospace wind-vectors and biophysics clinical streams"
-git push origin main
+            // Fire canvas calculation loops safely
+            if (droneCanvas) runAerospaceLoop();
+            if (biomedCanvas) runBiomedicalLoop();
+        });
+    </script>
+</body>
+</html>
