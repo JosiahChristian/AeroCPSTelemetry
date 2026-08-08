@@ -78,33 +78,15 @@
         .value { font-size: 2.2rem; font-weight: bold; display: block; margin-top: 5px; }
         .unit { color: #475569; font-size: 1rem; }
     </style>
-    <script>
-        // Declaring switchView globally at the very top prevents ReferenceErrors completely
-        function switchView(viewId, btnId) {
-            document.querySelectorAll('.dashboard-view').forEach(view => view.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            const selectedView = document.getElementById(viewId);
-            const selectedBtn = document.getElementById(btnId);
-            
-            if (selectedView) selectedView.classList.add('active');
-            if (selectedBtn) selectedBtn.classList.add('active');
-        }
-    </script>
 </head>
 <body>
 
     <header>
         <h1>ODU ADVANCED SYSTEM VISUALIZER MATRIX</h1>
-        <div class="metric-row cardio">
-    <span class="label">Systolic Hemodynamic Velocity:</span>
-    <span id="vessel-readout" class="value" style="color: var(--accent-green)">0.00</span><span class="unit">cm/s (Mid-Artery Flow)</span>
-</div>
-<!-- NEW COMPONENT INSERTION -->
-<div class="metric-row cardio" style="border-color: #facc15">
-    <span class="label">Mean Arterial Blood Pressure:</span>
-    <span id="pressure-readout" class="value" style="color: #facc15">120/80</span><span class="unit">mmHg (Dynamic Scale)</span>
-</div>
+        <div class="nav-tabs">
+            <button id="btn-aerospace" class="tab-btn active" onclick="switchView('aerospace-view', 'btn-aerospace')">🛸 Aerospace CPS Stream</button>
+            <button id="btn-biomedical" class="tab-btn" onclick="switchView('biomedical-view', 'btn-biomedical')">🫀 Biophysics Clinical Stream</button>
+        </div>
     </header>
 
     <main>
@@ -139,6 +121,10 @@
                     <span class="label">Systolic Hemodynamic Velocity:</span>
                     <span id="vessel-readout" class="value" style="color: var(--accent-green)">0.00</span><span class="unit">cm/s (Mid-Artery Flow)</span>
                 </div>
+                <div class="metric-row cardio" style="border-color: #facc15">
+                    <span class="label">Mean Arterial Blood Pressure:</span>
+                    <span id="pressure-readout" class="value" style="color: #facc15">120/80</span><span class="unit">mmHg (Dynamic Scale)</span>
+                </div>
                 <div class="metric-row neuro">
                     <span class="label">Axon Synaptic Action Potential:</span>
                     <span id="nerve-readout" class="value" style="color: var(--accent-red)">-70.00</span><span class="unit">millivolts (mV Spike)</span>
@@ -148,13 +134,30 @@
     </main>
 
     <script>
+        // Universal View Switching Controller
+        function switchView(viewId, btnId) {
+            document.querySelectorAll('.dashboard-view').forEach(view => view.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const selectedView = document.getElementById(viewId);
+            const selectedBtn = document.getElementById(btnId);
+            
+            if (selectedView) {
+                selectedView.style.display = 'grid';
+            }
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             // --- ENGINE 1: AEROSPACE ---
             const droneCanvas = document.getElementById('droneCanvas');
-            const dCtx = droneCanvas.getContext('2d');
+            const dCtx = droneCanvas ? droneCanvas.getContext('2d') : null;
             let alt = 0.0, vel = 0.0, targetAlt = 50.0, windForce = 0.0;
 
             function runAerospaceLoop() {
+                if (!dCtx) return;
                 if (Math.random() > 0.95) windForce = (Math.random() - 0.5) * 8.0;
                 let error = targetAlt - alt;
                 let thrust = error * 0.4;
@@ -182,22 +185,29 @@
 
             // --- ENGINE 2: BIOMEDICAL ---
             const biomedCanvas = document.getElementById('biomedCanvas');
-            const bCtx = biomedCanvas.getContext('2d');
+            const bCtx = biomedCanvas ? biomedCanvas.getContext('2d') : null;
             let waveOffset = 0, actionPotential = -70.0, heartRateTimer = 0;
 
             function runBiomedicalLoop() {
+                if (!bCtx) return;
                 waveOffset += 2;
                 heartRateTimer += 1;
-                let systolicBP = 120 + Math.sin(waveOffset * 0.05) * 8;
-let diastolicBP = 80 + Math.cos(waveOffset * 0.03) * 4;
-if (heartRateTimer % 60 < 5) systolicBP += 15; // Systolic pressure spike matching heart wave ejection
+                let cardioVelocity = 25.0 + Math.sin(waveOffset * 0.05) * 5.0;
+                if (heartRateTimer % 60 < 5) cardioVelocity += 15.0;
 
-const pressureElem = document.getElementById('pressure-readout');
-if (pressureElem) pressureElem.textContent = Math.round(systolicBP) + "/" + Math.round(diastolicBP);
+                let systolicBP = 120 + Math.sin(waveOffset * 0.05) * 8;
+                let diastolicBP = 80 + Math.cos(waveOffset * 0.03) * 4;
+                if (heartRateTimer % 60 < 5) systolicBP += 15;
+
+                if (heartRateTimer % 80 === 0) actionPotential = 40.0;
+                else actionPotential += (-70.0 - actionPotential) * 0.15;
 
                 const vesselElem = document.getElementById('vessel-readout');
+                const pressureElem = document.getElementById('pressure-readout');
                 const nerveElem = document.getElementById('nerve-readout');
+                
                 if (vesselElem) vesselElem.textContent = cardioVelocity.toFixed(2);
+                if (pressureElem) pressureElem.textContent = Math.round(systolicBP) + "/" + Math.round(diastolicBP);
                 if (nerveElem) nerveElem.textContent = actionPotential.toFixed(2);
 
                 bCtx.clearRect(0, 0, biomedCanvas.width, biomedCanvas.height);
@@ -213,22 +223,3 @@ if (pressureElem) pressureElem.textContent = Math.round(systolicBP) + "/" + Math
 
                 // Neuro Wave
                 bCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();
-                for (let x = 0; x < biomedCanvas.width; x++) {
-                    let baseNeuroY = 320;
-                    let impulsePos = (x + waveOffset) % 160;
-                    if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);
-                    else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);
-                    if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);
-                }
-                bCtx.stroke();
-
-                requestAnimationFrame(runBiomedicalLoop);
-            }
-
-            // Fire canvas calculation loops safely
-            if (droneCanvas) runAerospaceLoop();
-            if (biomedCanvas) runBiomedicalLoop();
-        });
-    </script>
-</body>
-</html>
