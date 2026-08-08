@@ -48,9 +48,9 @@
             border-color: var(--accent-blue);
         }
         
+        /* Enforce absolute visibility bounds during native initialization */
         .dashboard-view { display: none; }
-        #aerospace-view { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
-        #biomedical-view { display: none; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        .dashboard-view.active { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
         
         .card {
             background-color: var(--card-bg);
@@ -77,19 +77,6 @@
         .value { font-size: 2.2rem; font-weight: bold; display: block; margin-top: 5px; }
         .unit { color: #475569; font-size: 1rem; }
     </style>
-    <script>
-        function switchView(viewId, btnId) {
-            document.getElementById('aerospace-view').style.display = 'none';
-            document.getElementById('biomedical-view').style.display = 'none';
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            const targetView = document.getElementById(viewId);
-            const targetBtn = document.getElementById(btnId);
-            
-            if (targetView) targetView.style.display = 'grid';
-            if (targetBtn) targetBtn.classList.add('active');
-        }
-    </script>
 </head>
 <body>
 
@@ -103,7 +90,7 @@
 
     <main>
         <!-- Aerospace Panel -->
-        <section id="aerospace-view">
+        <section id="aerospace-view" class="dashboard-view active">
             <div class="card">
                 <h2>Flight Kinematics Canvas (Wind Vectors Active)</h2>
                 <canvas id="droneCanvas" width="500" height="400"></canvas>
@@ -122,7 +109,7 @@
         </section>
 
         <!-- Biomedical Panel -->
-        <section id="biomedical-view">
+        <section id="biomedical-view" class="dashboard-view">
             <div class="card">
                 <h2>Transient Biophysical Signal Wave Oscilloscope</h2>
                 <canvas id="biomedCanvas" width="500" height="400"></canvas>
@@ -144,3 +131,97 @@
             </div>
         </section>
     </main>
+
+    <script>
+        // Universal Native View Swapping Driver
+        function switchView(viewId, btnId) {
+            document.querySelectorAll('.dashboard-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const targetView = document.getElementById(viewId);
+            const targetBtn = document.getElementById(btnId);
+            
+            if (targetView) targetView.classList.add('active');
+            if (targetBtn) targetBtn.classList.add('active');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // --- ENGINE 1: AEROSPACE ---
+            const droneCanvas = document.getElementById('droneCanvas');
+            const dCtx = droneCanvas ? droneCanvas.getContext('2d') : null;
+            let alt = 0.0, vel = 0.0, targetAlt = 50.0, windForce = 0.0;
+
+            function runAerospaceLoop() {
+                if (!dCtx) return;
+                if (Math.random() > 0.95) windForce = (Math.random() - 0.5) * 8.0;
+                let error = targetAlt - alt;
+                let thrust = error * 0.4;
+                let acceleration = thrust - 9.81 + (windForce * 0.1);
+                vel += acceleration * 0.05;
+                alt += vel * 0.05;
+                if (alt < 0) { alt = 0; vel = 0; }
+
+                const altElem = document.getElementById('alt-readout');
+                const windElem = document.getElementById('wind-readout');
+                if (altElem) altElem.textContent = alt.toFixed(2);
+                if (windElem) windElem.textContent = windForce.toFixed(2);
+
+                dCtx.clearRect(0, 0, droneCanvas.width, droneCanvas.height);
+                let droneY = droneCanvas.height - 50 - (alt * 5);
+                let droneX = (droneCanvas.width / 2) + (windForce * 3);
+
+                dCtx.strokeStyle = '#3b82f6'; dCtx.lineWidth = 1; dCtx.beginPath();
+                dCtx.moveTo(0, droneCanvas.height - 50 - (targetAlt * 5)); dCtx.lineTo(droneCanvas.width, droneCanvas.height - 50 - (targetAlt * 5)); dCtx.stroke();
+                dCtx.fillStyle = '#1e293b'; dCtx.fillRect(0, droneCanvas.height - 50, droneCanvas.width, 50);
+                dCtx.fillStyle = '#38bdf8'; dCtx.fillRect(droneX - 20, droneY, 40, 8);
+                
+                requestAnimationFrame(runAerospaceLoop);
+            }
+
+            // --- ENGINE 2: BIOMEDICAL ---
+            const biomedCanvas = document.getElementById('biomedCanvas');
+            const bCtx = biomedCanvas ? biomedCanvas.getContext('2d') : null;
+            let waveOffset = 0, actionPotential = -70.0, heartRateTimer = 0;
+
+            function runBiomedicalLoop() {
+                if (!bCtx) return;
+                waveOffset += 2;
+                heartRateTimer += 1;
+                let cardioVelocity = 25.0 + Math.sin(waveOffset * 0.05) * 5.0;
+                if (heartRateTimer % 60 < 5) cardioVelocity += 15.0;
+
+                let systolicBP = 120 + Math.sin(waveOffset * 0.05) * 8;
+                let diastolicBP = 80 + Math.cos(waveOffset * 0.03) * 4;
+                if (heartRateTimer % 60 < 5) systolicBP += 15;
+
+                if (heartRateTimer % 80 === 0) actionPotential = 40.0;
+                else actionPotential += (-70.0 - actionPotential) * 0.15;
+
+                const vesselElem = document.getElementById('vessel-readout');
+                const pressureElem = document.getElementById('pressure-readout');
+                const nerveElem = document.getElementById('nerve-readout');
+                
+                if (vesselElem) vesselElem.textContent = cardioVelocity.toFixed(2);
+                if (pressureElem) pressureElem.textContent = Math.round(systolicBP) + "/" + Math.round(diastolicBP);
+                if (nerveElem) nerveElem.textContent = actionPotential.toFixed(2);
+
+                bCtx.clearRect(0, 0, biomedCanvas.width, biomedCanvas.height);
+
+                // Cardio Wave
+                bCtx.strokeStyle = '#4ade80'; bCtx.lineWidth = 2; bCtx.beginPath();
+                for (let x = 0; x < biomedCanvas.width; x++) {
+                    let y = 200 + Math.sin((x + waveOffset) * 0.03) * 20;
+                    if ((x + waveOffset) % 60 < 5) y -= 30;
+                    if (x === 0) bCtx.moveTo(x, y); else bCtx.lineTo(x, y);
+                }
+                bCtx.stroke();
+
+                // Neuro Wave
+                bCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();
+for (let x = 0; x < biomedCanvas.width; x++) {let baseNeuroY = 320;let impulsePos = (x + waveOffset) % 160;if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);}bCtx.stroke();requestAnimationFrame(runBiomedicalLoop);}
+            if (droneCanvas) runAerospaceLoop();
+            if (biomedCanvas) runBiomedicalLoop();
+        });
+        </script>
+</body>
+</html>
