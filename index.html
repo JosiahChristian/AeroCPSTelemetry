@@ -96,10 +96,15 @@
 
     <header>
         <h1>ODU ADVANCED SYSTEM VISUALIZER MATRIX</h1>
-        <div class="nav-tabs">
-            <button id="btn-aerospace" class="tab-btn active" onclick="switchView('aerospace-view', 'btn-aerospace')">🛸 Aerospace CPS Stream</button>
-            <button id="btn-biomedical" class="tab-btn" onclick="switchView('biomedical-view', 'btn-biomedical')">🫀 Biophysics Clinical Stream</button>
-        </div>
+        <div class="metric-row cardio">
+    <span class="label">Systolic Hemodynamic Velocity:</span>
+    <span id="vessel-readout" class="value" style="color: var(--accent-green)">0.00</span><span class="unit">cm/s (Mid-Artery Flow)</span>
+</div>
+<!-- NEW COMPONENT INSERTION -->
+<div class="metric-row cardio" style="border-color: #facc15">
+    <span class="label">Mean Arterial Blood Pressure:</span>
+    <span id="pressure-readout" class="value" style="color: #facc15">120/80</span><span class="unit">mmHg (Dynamic Scale)</span>
+</div>
     </header>
 
     <main>
@@ -183,11 +188,12 @@
             function runBiomedicalLoop() {
                 waveOffset += 2;
                 heartRateTimer += 1;
-                let cardioVelocity = 25.0 + Math.sin(waveOffset * 0.05) * 5.0;
-                if (heartRateTimer % 60 < 5) cardioVelocity += 15.0;
+                let systolicBP = 120 + Math.sin(waveOffset * 0.05) * 8;
+let diastolicBP = 80 + Math.cos(waveOffset * 0.03) * 4;
+if (heartRateTimer % 60 < 5) systolicBP += 15; // Systolic pressure spike matching heart wave ejection
 
-                if (heartRateTimer % 80 === 0) actionPotential = 40.0;
-                else actionPotential += (-70.0 - actionPotential) * 0.15;
+const pressureElem = document.getElementById('pressure-readout');
+if (pressureElem) pressureElem.textContent = Math.round(systolicBP) + "/" + Math.round(diastolicBP);
 
                 const vesselElem = document.getElementById('vessel-readout');
                 const nerveElem = document.getElementById('nerve-readout');
