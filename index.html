@@ -47,12 +47,12 @@
             color: #000;
             border-color: var(--accent-blue);
         }
+        
+        /* Rigidly define initial layout states directly in CSS to protect initialization */
         .dashboard-view { display: none; }
-        .dashboard-view.active {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 20px;
-        }
+        #aerospace-view { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        #biomedical-view { grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -78,6 +78,20 @@
         .value { font-size: 2.2rem; font-weight: bold; display: block; margin-top: 5px; }
         .unit { color: #475569; font-size: 1rem; }
     </style>
+    <script>
+        // High-level view switcher using defensive variable matching
+        function switchView(viewId, btnId) {
+            document.getElementById('aerospace-view').style.display = 'none';
+            document.getElementById('biomedical-view').style.display = 'none';
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const targetView = document.getElementById(viewId);
+            const targetBtn = document.getElementById(btnId);
+            
+            if (targetView) targetView.style.display = 'grid';
+            if (targetBtn) targetBtn.classList.add('active');
+        }
+    </script>
 </head>
 <body>
 
@@ -91,7 +105,7 @@
 
     <main>
         <!-- Aerospace Panel -->
-        <section id="aerospace-view" class="dashboard-view active">
+        <section id="aerospace-view">
             <div class="card">
                 <h2>Flight Kinematics Canvas (Wind Vectors Active)</h2>
                 <canvas id="droneCanvas" width="500" height="400"></canvas>
@@ -110,7 +124,7 @@
         </section>
 
         <!-- Biomedical Panel -->
-        <section id="biomedical-view" class="dashboard-view">
+        <section id="biomedical-view">
             <div class="card">
                 <h2>Transient Biophysical Signal Wave Oscilloscope</h2>
                 <canvas id="biomedCanvas" width="500" height="400"></canvas>
@@ -134,22 +148,6 @@
     </main>
 
     <script>
-        // Universal View Switching Controller
-        function switchView(viewId, btnId) {
-            document.querySelectorAll('.dashboard-view').forEach(view => view.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            const selectedView = document.getElementById(viewId);
-            const selectedBtn = document.getElementById(btnId);
-            
-            if (selectedView) {
-                selectedView.style.display = 'grid';
-            }
-            if (selectedBtn) {
-                selectedBtn.classList.add('active');
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             // --- ENGINE 1: AEROSPACE ---
             const droneCanvas = document.getElementById('droneCanvas');
@@ -221,6 +219,4 @@
                 }
                 bCtx.stroke();
 
-                // Neuro Wave
-                bCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();
-for (let x = 0; x < biomedCanvas.width; x++) {let baseNeuroY = 320;let impulsePos = (x + waveOffset) % 160;if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);}bCtx.stroke();requestAnimationFrame(runBiomedicalLoop);}if (droneCanvas) runAerospaceLoop();if (biomedCanvas) runBiomedicalLoop();});
+// Neuro WavebCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();for (let x = 0; x < biomedCanvas.width; x++) {let baseNeuroY = 320;let impulsePos = (x + waveOffset) % 160;if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);}bCtx.stroke();requestAnimationFrame(runBiomedicalLoop);}// Launch enginesif (droneCanvas) runAerospaceLoop();if (biomedCanvas) runBiomedicalLoop();});
