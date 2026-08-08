@@ -48,10 +48,9 @@
             border-color: var(--accent-blue);
         }
         
-        /* Rigidly define initial layout states directly in CSS to protect initialization */
         .dashboard-view { display: none; }
         #aerospace-view { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
-        #biomedical-view { grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        #biomedical-view { display: none; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
         
         .card {
             background-color: var(--card-bg);
@@ -79,7 +78,6 @@
         .unit { color: #475569; font-size: 1rem; }
     </style>
     <script>
-        // High-level view switcher using defensive variable matching
         function switchView(viewId, btnId) {
             document.getElementById('aerospace-view').style.display = 'none';
             document.getElementById('biomedical-view').style.display = 'none';
@@ -219,4 +217,5 @@
                 }
                 bCtx.stroke();
 
-// Neuro WavebCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();for (let x = 0; x < biomedCanvas.width; x++) {let baseNeuroY = 320;let impulsePos = (x + waveOffset) % 160;if (impulsePos < 15) baseNeuroY -= (impulsePos * 6);else if (impulsePos < 40) baseNeuroY -= (90 - (impulsePos - 15) * 3);if (x === 0) bCtx.moveTo(x, baseNeuroY); else bCtx.lineTo(x, baseNeuroY);}bCtx.stroke();requestAnimationFrame(runBiomedicalLoop);}// Launch enginesif (droneCanvas) runAerospaceLoop();if (biomedCanvas) runBiomedicalLoop();});
+                // Neuro Wave
+                bCtx.strokeStyle = '#f87171'; bCtx.lineWidth = 2; bCtx.beginPath();
