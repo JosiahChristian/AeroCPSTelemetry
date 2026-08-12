@@ -12,4 +12,4 @@ Targeted for interface engineering alignment with the **Old Dominion University 
 ## 🖥️ Live Application Deployment
 The production application workspace is built, hosted, and globally deployed using automated infrastructure components.
 
-👉 **[Launch Interactive Drone Dashboard Stream](https://christianjosiah2484-ai.github.io/AeroCPSTelemetry/)**
+👉 **[Launch Interactive Drone Dashboard Stream](https://josiahchristian.github.io/AeroCPSTelemetry/)**
