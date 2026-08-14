@@ -1,13 +1,67 @@
-# AeroCPSTelemetry: Cyber-Physical Ground Control Station
+# AeroCPSTelemetry
 
-An interactive, responsive real-time data visualization dashboard modeling ground control telemetry streams. This platform serves as a visual tracking asset to display aircraft states dynamically.
+Browser-based telemetry and visualization environment for cyber-physical flight dynamics, feedback behavior, and environmental disturbances.
 
-## 📊 Core Front-End Architecture
+## Overview
 
-*   **HTML5 Canvas Render Engine:** Draws physical coordinates and kinematics modifications natively without heavy external frame redraw overheads.
-*   **Transient State Interpolator:** Implements recursive time-slice calculations tracking proportional altitude error convergence constraints directly in the browser runtime environment.
+AeroCPSTelemetry provides an interactive front-end visualization layer for simulated aerospace cyber-physical systems.
 
-## 🖥️ Live Application Deployment
-The production application workspace is built, hosted, and globally deployed using automated infrastructure components.
+The current dashboard renders aircraft state behavior in real time while exposing telemetry associated with altitude tracking and atmospheric crosswind disturbances. The project demonstrates how browser-native visualization can provide an observable interface for dynamic physical-system simulations.
 
-👉 **[Launch Interactive Drone Dashboard Stream](https://josiahchristian.github.io/AeroCPSTelemetry/)**
+## Current Telemetry
+
+The dashboard currently visualizes:
+
+- altitude target conformance
+- aircraft vertical dynamics
+- proportional feedback behavior
+- atmospheric wind-shear disturbances
+- crosswind-induced trajectory displacement
+- real-time flight-state rendering
+
+## Architecture
+
+### HTML5 Canvas Rendering
+
+The visualization engine uses the HTML5 Canvas API to render aircraft position, target-altitude references, ground geometry, and disturbance-driven displacement directly in the browser.
+
+### Dynamic State Simulation
+
+The browser runtime maintains a simplified flight state consisting of altitude, velocity, target altitude, and environmental disturbance forces.
+
+State variables are advanced continuously using discrete time-step integration.
+
+### Feedback Control
+
+Altitude behavior is driven by proportional error feedback relative to the target altitude.
+
+The resulting control input interacts with gravitational acceleration and simulated wind disturbances to produce the displayed flight trajectory.
+
+### Environmental Disturbance Modeling
+
+Transient crosswind forces are introduced during runtime to perturb the simulated vehicle state.
+
+These disturbances are exposed through the telemetry registry and visually influence aircraft displacement on the flight canvas.
+
+## Technology
+
+- JavaScript
+- HTML5
+- CSS3
+- Canvas API
+- Browser-native simulation
+- GitHub Pages
+
+## Related Systems
+
+AeroCPSTelemetry forms part of a broader aerospace and intelligent-systems software portfolio alongside:
+
+- **AeroCPSSimulation** — C++ cyber-physical flight simulation and control
+- **AeroDigitalTwin** — physics-informed digital-twin experimentation
+- **TelemetryPipelineJava** — Java/Spring telemetry ingestion and persistence infrastructure
+
+Biomedical computational visualization has been separated into the dedicated **BiomedicalTelemetryVisualizer** project.
+
+## Live Application
+
+[Launch Aero CPS Telemetry](https://josiahchristian.github.io/AeroCPSTelemetry/)
