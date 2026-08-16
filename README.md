@@ -52,15 +52,11 @@ These disturbances are exposed through the telemetry registry and visually influ
 - Browser-native simulation
 - GitHub Pages
 
-## Related Systems
+## Related Software
 
-AeroCPSTelemetry forms part of a broader aerospace and intelligent-systems software portfolio alongside:
-
-- **AeroCPSSimulation** — C++ cyber-physical flight simulation and control
-- **AeroDigitalTwin** — physics-informed digital-twin experimentation
-- **TelemetryPipelineJava** — Java/Spring telemetry ingestion and persistence infrastructure
-
-Biomedical computational visualization has been separated into the dedicated **BiomedicalTelemetryVisualizer** project.
+- **AeroCPSSimulation** — C++ flight-dynamics and feedback-control simulation
+- **TelemetryPipelineJava** — Java/Spring telemetry ingestion and persistence backend
+- **BiomedicalTelemetryVisualizer** — separate browser-based visualization for biomedical telemetry
 
 ## Live Application
 
