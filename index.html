@@ -1,314 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Aero CPS Telemetry</title>
-
-    <style>
-        :root {
-            --bg-color: #05070f;
-            --card-bg: #0f172a;
-            --accent-blue: #38bdf8;
-            --accent-purple: #a855f7;
-            --text-color: #f8fafc;
-            --muted-color: #64748b;
-            --border-color: #1e293b;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: "Courier New", Courier, monospace;
-            margin: 0;
-            padding: 20px;
-        }
-
-        header {
-            border-bottom: 2px solid var(--accent-blue);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.8rem;
-            letter-spacing: 1px;
-        }
-
-        .subtitle {
-            color: var(--muted-color);
-            margin: 8px 0 0;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 20px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        canvas {
-            background-color: #020617;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            height: 380px;
-            display: block;
-            border-radius: 4px;
-        }
-
-        .metric-row {
-            margin: 25px 0;
-            border-left: 3px solid var(--accent-blue);
-            padding-left: 15px;
-        }
-
-        .metric-row.wind {
-            border-color: var(--accent-purple);
-        }
-
-        .label {
-            color: var(--muted-color);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-        }
-
-        .value {
-            font-size: 2.2rem;
-            font-weight: bold;
-            display: block;
-            margin-top: 5px;
-        }
-
-        .unit {
-            color: #475569;
-            font-size: 1rem;
-        }
-
-        @media (max-width: 850px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive aerospace flight-state and disturbance telemetry visualization.">
+  <title>Aero CPS Telemetry</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Aerospace cyber-physical systems</p>
+      <h1>Aero CPS Telemetry</h1>
+      <p class="subtitle">Observable flight-state behavior under feedback control and crosswind disturbances.</p>
+    </div>
+    <div id="run-status" class="status" role="status" aria-live="polite">Running</div>
+  </header>
 
-    <header>
-        <h1>AERO CPS TELEMETRY</h1>
+  <main>
+    <section class="overview" aria-label="Simulation overview">
+      <div><span>Model</span><strong>Vertical point mass</strong></div>
+      <div><span>Controller</span><strong>PD + gravity compensation</strong></div>
+      <div><span>Target altitude</span><strong>50.0 m</strong></div>
+      <div><span>Integration</span><strong>Semi-implicit Euler</strong></div>
+    </section>
 
-        <p class="subtitle">
-            Real-time cyber-physical flight telemetry and disturbance visualization.
-        </p>
-    </header>
+    <div class="dashboard">
+      <section class="card canvas-card">
+        <div class="card-heading">
+          <div><p class="section-label">Live visualization</p><h2>Flight kinematics</h2></div>
+          <div class="controls" aria-label="Simulation controls">
+            <button id="toggle-button" type="button">Pause</button>
+            <button id="disturbance-button" type="button">Inject gust</button>
+            <button id="reset-button" type="button" class="secondary">Reset</button>
+          </div>
+        </div>
+        <canvas id="flight-canvas" width="900" height="520" aria-label="Aircraft altitude relative to its target"></canvas>
+        <p class="canvas-note">The horizontal reference marks the commanded altitude. Gusts perturb lateral rendering and vertical acceleration.</p>
+      </section>
 
-    <main class="dashboard">
+      <aside class="card telemetry" aria-labelledby="telemetry-title">
+        <p class="section-label">Live state registry</p>
+        <h2 id="telemetry-title">Telemetry</h2>
+        <dl>
+          <div><dt>Altitude</dt><dd><span id="altitude">0.00</span> <small>m</small></dd></div>
+          <div><dt>Vertical velocity</dt><dd><span id="velocity">0.00</span> <small>m/s</small></dd></div>
+          <div><dt>Tracking error</dt><dd><span id="error">50.00</span> <small>m</small></dd></div>
+          <div class="wind"><dt>Crosswind force</dt><dd><span id="wind">0.00</span> <small>N</small></dd></div>
+          <div><dt>Elapsed model time</dt><dd><span id="elapsed">0.00</span> <small>s</small></dd></div>
+        </dl>
+      </aside>
+    </div>
 
-        <section class="card">
-            <h2>Flight Kinematics Canvas</h2>
+    <section class="scope-note">
+      <h2>Model boundary</h2>
+      <p>This interface visualizes a deliberately reduced vertical point-mass model. It is not a six-degree-of-freedom flight model, certified controller, or operational aircraft system.</p>
+    </section>
+  </main>
 
-            <canvas
-                id="droneCanvas"
-                width="500"
-                height="400">
-            </canvas>
-        </section>
-
-        <section class="card">
-            <h2>Telemetry Registry</h2>
-
-            <div class="metric-row">
-                <span class="label">
-                    Altitude Target Conformance
-                </span>
-
-                <span
-                    id="alt-readout"
-                    class="value"
-                    style="color: var(--accent-blue)">
-                    0.00
-                </span>
-
-                <span class="unit">
-                    meters
-                </span>
-            </div>
-
-            <div class="metric-row wind">
-                <span class="label">
-                    Atmospheric Wind Shear Force
-                </span>
-
-                <span
-                    id="wind-readout"
-                    class="value"
-                    style="color: var(--accent-purple)">
-                    0.00
-                </span>
-
-                <span class="unit">
-                    Newtons (Crosswind)
-                </span>
-            </div>
-
-        </section>
-
-    </main>
-
-    <script>
-        window.addEventListener("DOMContentLoaded", () => {
-
-            const droneCanvas =
-                document.getElementById("droneCanvas");
-
-            const ctx =
-                droneCanvas
-                    ? droneCanvas.getContext("2d")
-                    : null;
-
-            const altReadout =
-                document.getElementById("alt-readout");
-
-            const windReadout =
-                document.getElementById("wind-readout");
-
-            let altitude = 0.0;
-            let velocity = 0.0;
-            let windForce = 0.0;
-
-            const targetAltitude = 50.0;
-            const timeStep = 0.05;
-
-            function runAerospaceLoop() {
-
-                if (!ctx || !droneCanvas) {
-                    return;
-                }
-
-                if (Math.random() > 0.95) {
-                    windForce =
-                        (Math.random() - 0.5) * 8.0;
-                }
-
-                const error =
-                    targetAltitude - altitude;
-
-                const thrust =
-                    error * 0.4;
-
-                const acceleration =
-                    thrust -
-                    9.81 +
-                    (windForce * 0.1);
-
-                velocity +=
-                    acceleration * timeStep;
-
-                altitude +=
-                    velocity * timeStep;
-
-                if (altitude < 0) {
-                    altitude = 0;
-                    velocity = 0;
-                }
-
-                if (altReadout) {
-                    altReadout.textContent =
-                        altitude.toFixed(2);
-                }
-
-                if (windReadout) {
-                    windReadout.textContent =
-                        windForce.toFixed(2);
-                }
-
-                ctx.clearRect(
-                    0,
-                    0,
-                    droneCanvas.width,
-                    droneCanvas.height
-                );
-
-                const droneY =
-                    droneCanvas.height -
-                    50 -
-                    (altitude * 5);
-
-                const droneX =
-                    (droneCanvas.width / 2) +
-                    (windForce * 3);
-
-                const targetY =
-                    droneCanvas.height -
-                    50 -
-                    (targetAltitude * 5);
-
-                ctx.strokeStyle = "#3b82f6";
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-
-                ctx.beginPath();
-                ctx.moveTo(0, targetY);
-                ctx.lineTo(
-                    droneCanvas.width,
-                    targetY
-                );
-                ctx.stroke();
-
-                ctx.setLineDash([]);
-
-                ctx.fillStyle = "#1e293b";
-
-                ctx.fillRect(
-                    0,
-                    droneCanvas.height - 50,
-                    droneCanvas.width,
-                    50
-                );
-
-                ctx.fillStyle = "#38bdf8";
-
-                ctx.fillRect(
-                    droneX - 20,
-                    droneY,
-                    40,
-                    8
-                );
-
-                ctx.fillRect(
-                    droneX - 38,
-                    droneY - 5,
-                    18,
-                    4
-                );
-
-                ctx.fillRect(
-                    droneX + 20,
-                    droneY - 5,
-                    18,
-                    4
-                );
-
-                requestAnimationFrame(
-                    runAerospaceLoop
-                );
-            }
-
-            runAerospaceLoop();
-        });
-    </script>
-
+  <script type="module" src="src/app.js"></script>
 </body>
 </html>
