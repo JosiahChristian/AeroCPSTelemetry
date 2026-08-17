@@ -1,76 +1,72 @@
 # AeroCPSTelemetry
 
-Browser-based telemetry and visualization environment for cyber-physical flight dynamics, feedback behavior, and environmental disturbances.
+Browser-based telemetry visualization for aerospace cyber-physical simulations, including direct ingestion of the versioned CSV contract emitted by `AeroCPSSimulation`.
 
 [![Web validation](https://github.com/JosiahChristian/AeroCPSTelemetry/actions/workflows/web-validation.yml/badge.svg)](https://github.com/JosiahChristian/AeroCPSTelemetry/actions/workflows/web-validation.yml)
 [![Live application](https://img.shields.io/badge/live-GitHub%20Pages-46d8ff)](https://josiahchristian.github.io/AeroCPSTelemetry/)
 
-## Overview
+## Cross-Repository Integration
 
-AeroCPSTelemetry provides an interactive front-end visualization layer for simulated aerospace cyber-physical systems.
+`AeroCPSSimulation` defines and emits the vertical-flight telemetry contract `aerocps.telemetry.v1`:
 
-The current dashboard renders aircraft state behavior in real time while exposing telemetry associated with altitude tracking and atmospheric crosswind disturbances. The project demonstrates how browser-native visualization can provide an observable interface for dynamic physical-system simulations.
+```text
+schema_version,step,time_s,altitude_m,velocity_mps,target_altitude_m,gravity_mps2
+```
 
-## Current Telemetry
+The live browser application can import that CSV directly. Imported rows are schema-checked before playback: the parser rejects incompatible headers, unsupported schema versions, non-finite numeric values, non-monotonic steps, and non-monotonic simulation time.
 
-The dashboard currently visualizes:
+This creates a real data path rather than a narrative cross-link:
 
-- altitude target conformance
-- aircraft vertical dynamics
-- proportional feedback behavior
-- atmospheric wind-shear disturbances
-- crosswind-induced trajectory displacement
-- real-time flight-state rendering
-- pause, reset, and explicit gust-injection controls
-- altitude, vertical velocity, tracking-error, force, and elapsed-time readouts
+```text
+AeroCPSSimulation
+    |
+    | aerocps.telemetry.v1 CSV
+    v
+AeroCPSTelemetry parser
+    |
+    v
+browser playback + state visualization
+```
 
-## Architecture
+Because GitHub Pages is static, transfer currently occurs through an explicit browser file import rather than a continuously connected backend service.
 
-### HTML5 Canvas Rendering
+## Two Visualization Modes
 
-The visualization engine uses the HTML5 Canvas API to render aircraft position, target-altitude references, ground geometry, and disturbance-driven displacement directly in the browser.
+### Imported simulator telemetry
 
-### Dynamic State Simulation
+Use the file control in the live application to select CSV output produced by the vertical-flight executable in `AeroCPSSimulation`. The dashboard replays the simulator's actual altitude, vertical velocity, target altitude, and elapsed simulation time.
 
-The browser runtime maintains a simplified flight state consisting of altitude, velocity, target altitude, and environmental disturbance forces.
+### Built-in browser model
 
-State variables are advanced continuously using discrete time-step integration.
-
-### Feedback Control
-
-Altitude behavior is driven by proportional-derivative error feedback with
-gravity compensation relative to the target altitude.
-
-The resulting control input interacts with gravitational acceleration and simulated wind disturbances to produce the displayed flight trajectory.
-
-### Environmental Disturbance Modeling
-
-Transient crosswind forces are introduced during runtime to perturb the simulated vehicle state.
-
-These disturbances are exposed through the telemetry registry and visually influence aircraft displacement on the flight canvas.
+Without an imported CSV, the page runs its original reduced vertical point-mass model with PD feedback, gravity compensation, and optional gust disturbances. This remains a browser-native engineering demonstration and is deliberately labeled separately from imported simulator evidence.
 
 ## Repository Structure
 
 ```text
 .
-├── index.html                 # accessible application shell
-├── styles.css                # responsive visual system
-├── src/app.js                # rendering, controls, and animation loop
-├── src/flight-model.js       # deterministic simulation core
-├── tests/flight-model.test.js
-└── .github/workflows/        # Node-based continuous validation
+├── index.html
+├── styles.css
+├── src/
+│   ├── app.js
+│   ├── flight-model.js
+│   └── telemetry-parser.js
+├── tests/
+│   ├── flight-model.test.js
+│   └── telemetry-parser.test.js
+└── .github/workflows/
 ```
 
 ## Run and Test
 
-The application has no runtime dependencies. Serve the repository with any
-static HTTP server, then open `index.html`. To run the numerical model tests:
+The application has no runtime dependencies. Serve the repository with any static HTTP server and open `index.html`.
+
+Run the numerical-model and telemetry-contract tests with:
 
 ```bash
 npm test
 ```
 
-Node.js 20 or newer is required for the test command.
+Node.js 20 or newer is required.
 
 ## Technology
 
@@ -78,21 +74,21 @@ Node.js 20 or newer is required for the test command.
 - HTML5
 - CSS3
 - Canvas API
-- Browser-native simulation
+- Browser-native simulation and telemetry playback
 - GitHub Pages
 - Node.js built-in test runner
 
 ## Related Software
 
-- [**AeroCPSSimulation**](https://github.com/JosiahChristian/AeroCPSSimulation) — C++ flight-dynamics and feedback-control simulation
-- [**TelemetryPipelineJava**](https://github.com/JosiahChristian/TelemetryPipelineJava) — Java/Spring telemetry ingestion and persistence backend
-- [**BiomedicalTelemetryVisualizer**](https://github.com/JosiahChristian/BiomedicalTelemetryVisualizer) — separate browser-based visualization for biomedical telemetry
+- [**AeroCPSSimulation**](https://github.com/JosiahChristian/AeroCPSSimulation) — producer of the `aerocps.telemetry.v1` CSV consumed here
+- [**TelemetryPipelineJava**](https://github.com/JosiahChristian/TelemetryPipelineJava) — general Java/Spring telemetry ingestion and persistence backend; not currently in this browser data path
+- [**BiomedicalTelemetryVisualizer**](https://github.com/JosiahChristian/BiomedicalTelemetryVisualizer) — separate physiological telemetry visualization
 
 ## Model Boundary
 
-The browser simulation is a deliberately reduced vertical point-mass model. It
-does not reproduce the six-degree-of-freedom dynamics in `AeroCPSSimulation`
-and must not be interpreted as a certified flight model or controller.
+Imported `aerocps.telemetry.v1` data represents the vertical-flight contract exposed by `AeroCPSSimulation`. It must not be interpreted as six-degree-of-freedom telemetry. The built-in browser model is independently reduced and does not reproduce the native C++ simulation.
+
+Neither mode represents a certified controller or operational aircraft system.
 
 ## Live Application
 
