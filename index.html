@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Interactive aerospace flight-state and disturbance telemetry visualization.">
+  <meta name="description" content="Aerospace telemetry visualization with direct AeroCPSSimulation CSV ingestion.">
   <title>Aero CPS Telemetry</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,35 +12,36 @@
     <div>
       <p class="eyebrow">Aerospace cyber-physical systems</p>
       <h1>Aero CPS Telemetry</h1>
-      <p class="subtitle">Observable flight-state behavior under feedback control and crosswind disturbances.</p>
+      <p class="subtitle">Visualize the browser model or replay schema-validated telemetry exported by AeroCPSSimulation.</p>
     </div>
-    <div id="run-status" class="status" role="status" aria-live="polite">Running</div>
+    <div id="run-status" class="status" role="status" aria-live="polite">Running browser model</div>
   </header>
 
   <main>
-    <section class="overview" aria-label="Simulation overview">
-      <div><span>Model</span><strong>Vertical point mass</strong></div>
-      <div><span>Controller</span><strong>PD + gravity compensation</strong></div>
-      <div><span>Target altitude</span><strong>50.0 m</strong></div>
-      <div><span>Integration</span><strong>Semi-implicit Euler</strong></div>
+    <section class="overview" aria-label="Telemetry overview">
+      <div><span>Source</span><strong id="source-name">Browser model</strong></div>
+      <div><span>Contract</span><strong id="schema-name">Local state</strong></div>
+      <div><span>Target altitude</span><strong><span id="target-altitude">50.0</span> m</strong></div>
+      <div><span>Import</span><strong><label for="telemetry-file">AeroCPSSimulation CSV</label></strong></div>
     </section>
 
     <div class="dashboard">
       <section class="card canvas-card">
         <div class="card-heading">
-          <div><p class="section-label">Live visualization</p><h2>Flight kinematics</h2></div>
-          <div class="controls" aria-label="Simulation controls">
+          <div><p class="section-label">Telemetry visualization</p><h2>Flight kinematics</h2></div>
+          <div class="controls" aria-label="Simulation and playback controls">
+            <input id="telemetry-file" type="file" accept=".csv,text/csv" aria-label="Import AeroCPSSimulation telemetry CSV">
             <button id="toggle-button" type="button">Pause</button>
             <button id="disturbance-button" type="button">Inject gust</button>
             <button id="reset-button" type="button" class="secondary">Reset</button>
           </div>
         </div>
         <canvas id="flight-canvas" width="900" height="520" aria-label="Aircraft altitude relative to its target"></canvas>
-        <p class="canvas-note">The horizontal reference marks the commanded altitude. Gusts perturb lateral rendering and vertical acceleration.</p>
+        <p class="canvas-note" id="source-note">Browser-model mode is active. Import a CSV emitted by AeroCPSSimulation to replay its real telemetry contract.</p>
       </section>
 
       <aside class="card telemetry" aria-labelledby="telemetry-title">
-        <p class="section-label">Live state registry</p>
+        <p class="section-label">State registry</p>
         <h2 id="telemetry-title">Telemetry</h2>
         <dl>
           <div><dt>Altitude</dt><dd><span id="altitude">0.00</span> <small>m</small></dd></div>
@@ -53,8 +54,8 @@
     </div>
 
     <section class="scope-note">
-      <h2>Model boundary</h2>
-      <p>This interface visualizes a deliberately reduced vertical point-mass model. It is not a six-degree-of-freedom flight model, certified controller, or operational aircraft system.</p>
+      <h2>Model and data boundary</h2>
+      <p>The built-in browser mode is a reduced vertical point-mass demonstration. Imported mode consumes the exact <code>aerocps.telemetry.v1</code> CSV contract emitted by AeroCPSSimulation's vertical-flight executable. It does not convert that contract into six-degree-of-freedom data or imply certified aircraft behavior.</p>
     </section>
   </main>
 
